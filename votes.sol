@@ -44,6 +44,7 @@ contract Votes{
 
     mapping(address => Votante) vota;
 
+//paréntesis removidos después del nombre del modifier
     modifier validarOwner{
         require(msg.sender==owner, "Tu no eres el INE Dex ");
         _;
@@ -54,7 +55,7 @@ contract Votes{
     }
      
       function permisoVotar(address _Votante) public validarOwner() {
-       require(!vota[_Votante].puedeVotar, "ya tienes derecho a votar");
+       require(vota[_Votante].puedeVotar, "ya tienes derecho a votar");
         vota[_Votante].puedeVotar= true;
 
     }
