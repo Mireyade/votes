@@ -44,7 +44,7 @@ contract Votes{
 
     mapping(address => Votante) vota;
 
-    modifier validarOwner(){
+    modifier validarOwner{
         require(msg.sender==owner, "Tu no eres el INE Dex ");
         _;
         
