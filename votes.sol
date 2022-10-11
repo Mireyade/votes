@@ -5,25 +5,25 @@ pragma solidity ^0.8.0;
 
 contract Votes{
 
+    //Global variables
     uint256 totalVotos;
     address owner;
-    uint public time = block.timestamp; // Get the time when the contract started
+    uint public time = block.timestamp; // Se obtiene el tiempo en que se inició el contrato. *public lo usamos sólo para validar durante las pruebas
+    uint public limit = time + 300; //Se le suma cierto tiempo (en segundos) al momento en que inició el contrato. *public para validar durante las pruebas
 
-  struct Candidato{
-
+    struct Candidato{
         string nombre;
         uint id;
         uint256 votos;
     }
 
-// A dynamically-sized array of `Candidato` structs.
-Candidato[] public candidatos;
+    // A dynamically-sized array of `Candidato` structs.
+    Candidato[] public candidatos;
 
-//Registro de candidatos
-constructor(string[] memory _nombre) {
+    //Registro de candidatos
+    constructor(string[] memory _nombre) {
         // For each of the provided proposal names,
-        // create a new proposal object and add it
-        // to the end of the array.
+        // create a new candidate object and add it to the end of the array.
         owner= msg.sender;
 
         for (uint i = 0; i < _nombre.length; i++) {
@@ -59,12 +59,17 @@ constructor(string[] memory _nombre) {
 
     }
 
+    modifier validarSession{
+        require(block.timestamp < limit, "Las votaciones han finalizado");
+        _;
+    }
+
     //Función Votar (Sólo la ejecutan los votantes con permiso)
-    function vote(uint _Candidato) external {
+    function vote(uint _Candidato) public validarSession(){
     Votante storage sender = vota[msg.sender];
         require(sender.puedeVotar, "No tienes derecho a votar");
         require(!sender.voto, " No puedes volver a votar");
-        require(time == time + 60, "Las votaciones han finalizado"); //Se le suma cierto tiempo (en segundos) al momento en que inició el contrato
+        
         
         sender.puedeVotar = false;
         sender.voto = true;
@@ -77,8 +82,8 @@ constructor(string[] memory _nombre) {
     function validarWinner() public view
             returns (uint winner)
       {
-            uint conteoVotos = 0;
-         for (uint counter = 0; counter < candidatos.length; counter++) {
+        uint conteoVotos = 0;
+        for (uint counter = 0; counter < candidatos.length; counter++) {
             if (candidatos[counter].votos > conteoVotos) {
                 conteoVotos = candidatos[counter].votos;
                 winner = counter;
@@ -86,13 +91,17 @@ constructor(string[] memory _nombre) {
         }
      }
 
-  function ganadorAbsolutp() external view returns(string memory , address)         
+  function ganadorAbsolutp() external view returns(string memory , address)       
     {
+        if (block.timestamp >= limit){
         string memory ganador;
         address contractAddress= address(this);
         ganador = candidatos[validarWinner()].nombre;
-
         return (ganador, contractAddress);
+        }
+        else{
+            return("Las votaciones siguen en progreso", address(this));
+        }
     }
 
 }
